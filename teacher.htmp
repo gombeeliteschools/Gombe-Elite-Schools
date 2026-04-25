@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Teacher - Gombe Elite Schools</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Arial;background:#f0f2f5;padding:20px}
+        .container{max-width:900px;margin:0 auto}
+        .header{background:#0000ff;color:#fff;padding:20px;border-radius:10px 10px 0 0;display:flex;justify-content:space-between}
+        .logout-btn{background:#e74c3c;padding:8px 16px;border-radius:5px;cursor:pointer;border:none;color:#fff}
+        .card{background:#fff;padding:25px;border-radius:0 0 10px 10px}
+        select,input,button{padding:10px;border-radius:8px;border:1px solid #ddd}
+        button{background:#0000ff;color:#fff;border:none;cursor:pointer}
+        .selector-group{display:flex;gap:15px;flex-wrap:wrap;margin-bottom:20px}
+        .selector-group select{flex:1}
+        .search-box{width:100%;padding:12px;margin:15px 0;border:1px solid #ddd;border-radius:8px}
+        .student-list{max-height:400px;overflow-y:auto;border:1px solid #eee;border-radius:8px}
+        .student-item{padding:12px 15px;border-bottom:1px solid #eee;cursor:pointer;display:flex;justify-content:space-between}
+        .student-item:hover{background:#f0f0ff}
+        .pagination{display:flex;justify-content:center;gap:10px;margin:15px 0}
+        .page-btn{padding:5px 12px;background:#eee;color:#333;cursor:pointer}
+        .page-btn.active{background:#0000ff;color:#fff}
+        .score-form{background:#f9f9ff;padding:20px;border-radius:10px;margin-top:20px}
+        .form-row{display:flex;gap:15px;margin-bottom:15px;flex-wrap:wrap}
+        .form-field{flex:1}
+        .form-field label{display:block;margin-bottom:5px;font-weight:bold;font-size:12px}
+        .form-field input,.form-field select{width:100%}
+        .skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:15px 0}
+        .skills-grid select{width:100%}
+        .total-grade{background:#0000ff;color:#fff;padding:15px;border-radius:8px;text-align:center;margin:15px 0;font-size:18px}
+        .action-buttons{display:flex;gap:10px;margin-top:15px}
+        .action-buttons button{flex:1}
+        .btn-next{background:#27ae60}
+        .back-link{color:#0000ff;cursor:pointer;margin-bottom:15px;display:inline-block}
+        .alert{padding:10px;border-radius:5px;margin:10px 0;display:none}
+        .alert-success{background:#d4edda;color:#155724}
+        .alert-error{background:#f8d7da;color:#721c24}
+        .spinner{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;margin-right:6px}
+        @keyframes spin{to{transform:rotate(360deg)}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>📝 Teacher Portal - <span id="teacherName"></span></h2>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+    <div class="card">
+        <div id="alert" class="alert"></div>
+        <div id="screen1">
+            <h3>Step 1: Select Class, Subject & Term</h3>
+            <div class="selector-group">
+                <select id="classSelect"><option value="">-- Select Class --</option>
+                    <option>SSS One A</option><option>SSS One B</option><option>JSS One A</option><option>JSS One B</option>
+                </select>
+                <select id="subjectSelect"><option value="">-- Select Subject --</option>
+                    <option>Mathematics</option><option>English</option><option>Basic Science</option><option>Social Studies</option>
+                </select>
+                <select id="termSelect"><option value="">-- Select Term --</option>
+                    <option>First Term</option><option>Second Term</option><option>Third Term</option>
+                </select>
+            </div>
+            <button id="continueBtn" onclick="goToScreen2()">Continue →</button>
+        </div>
+        <div id="screen2" style="display:none">
+            <span class="back-link" onclick="goToScreen1()">← Back</span>
+            <h3>Step 2: Select Student</h3>
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search by name..." onkeyup="searchStudents()">
+            <div id="studentList" class="student-list"></div>
+            <div id="pagination" class="pagination"></div>
+        </div>
+        <div id="screen3" style="display:none">
+            <span class="back-link" onclick="goToScreen2()">← Back</span>
+            <div id="scoreForm" class="score-form"></div>
+        </div>
+    </div>
+</div>
+<script>
+    var students = [
+        {admissionNo:'GES/001', name:'Ali Musa', class:'SSS One A'},
+        {admissionNo:'GES/002', name:'Amina Bello', class:'SSS One A'},
+        {admissionNo:'GES/003', name:'Bashir Umar', class:'SSS One A'},
+        {admissionNo:'GES/004', name:'Fatima Idris', class:'SSS One A'},
+        {admissionNo:'GES/005', name:'Zainab Abba', class:'SSS One A'}
+    ];
+    var currentPage=1,currentSearch='',currentStudentsList=[],currentStudentIndex=-1;
+    
+    function showAlert(msg,type){var a=document.getElementById('alert');a.innerHTML=msg;a.style.display='block';a.className='alert alert-'+type;setTimeout(function(){a.style.display='none';},2500);}
+    document.getElementById('teacherName').innerText=sessionStorage.getItem('name')||'Teacher';
+    
+    function goToScreen1(){document.getElementById('screen1').style.display='block';document.getElementById('screen2').style.display='none';document.getElementById('screen3').style.display='none';}
+    
+    function goToScreen2(){
+        var cls=document.getElementById('classSelect').value;
+        var subj=document.getElementById('subjectSelect').value;
+        var term=document.getElementById('termSelect').value;
+        if(!cls||!subj||!term){showAlert('Select all options','error');return;}
+        loadStudents(1,'');
+        document.getElementById('screen1').style.display='none';
+        document.getElementById('screen2').style.display='block';
+    }
+    
+    function loadStudents(page,search){
+        var filtered = students;
+        if(search){filtered=students.filter(s=>s.name.toLowerCase().includes(search.toLowerCase()));}
+        var pageSize=5;
+        var start=(page-1)*pageSize;
+        currentStudentsList=filtered.slice(start,start+pageSize);
+        var html='';
+        for(var i=0;i<currentStudentsList.length;i++){
+            html+=`<div class="student-item" onclick="selectStudent(${i})"><div><strong>${currentStudentsList[i].name}</strong><br><small>${currentStudentsList[i].admissionNo}</small></div><div>✏️ Enter scores →</div></div>`;
+        }
+        document.getElementById('studentList').innerHTML=html||'<div style="padding:20px;text-align:center;">No students found</div>';
+    }
+    
+    function searchStudents(){loadStudents(1,document.getElementById('searchInput').value);}
+    
+    function selectStudent(index){
+        currentStudentIndex=index;
+        var s=currentStudentsList[index];
+        document.getElementById('screen2').style.display='none';
+        document.getElementById('screen3').style.display='block';
+        document.getElementById('scoreForm').innerHTML=`
+            <h3>${s.name} (${s.admissionNo})</h3>
+            <div class="form-row"><div class="form-field"><label>CA Score (40 max)</label><input type="number" id="caScore" min="0" max="40" oninput="calcTotal()"></div>
+            <div class="form-field"><label>Exam Score (60 max)</label><input type="number" id="examScore" min="0" max="60" oninput="calcTotal()"></div></div>
+            <div id="totalDisplay" class="total-grade">Total: -- | Grade: --</div>
+            <h4>📊 Behaviour & Skills (1-5)</h4>
+            <div class="skills-grid">
+                <div><label>Attendance</label><select id="s1">${makeOptions()}</select></div>
+                <div><label>Punctuality</label><select id="s2">${makeOptions()}</select></div>
+                <div><label>Attentiveness</label><select id="s3">${makeOptions()}</select></div>
+                <div><label>Neatness</label><select id="s4">${makeOptions()}</select></div>
+                <div><label>Fluency</label><select id="s5">${makeOptions()}</select></div>
+                <div><label>Sports</label><select id="s6">${makeOptions()}</select></div>
+                <div><label>Relationships</label><select id="s7">${makeOptions()}</select></div>
+            </div>
+            <div class="form-field"><label>📝 Teacher Comment</label><textarea id="comment" rows="2" style="width:100%;padding:8px;"></textarea></div>
+            <div class="action-buttons"><button onclick="saveCurrent()">💾 Save</button><button class="btn-next" onclick="saveAndNext()">Save & Next →</button></div>
+        `;
+        calcTotal();
+    }
+    
+    function makeOptions(){var opts='';for(var i=1;i<=5;i++){var l=i===5?'Excellent':(i===4?'Very Good':(i===3?'Good':(i===2?'Fair':'Poor')));opts+=`<option value="${i}">${i} - ${l}</option>`;}return opts;}
+    function calcTotal(){var ca=parseInt(document.getElementById('caScore').value)||0;var exam=parseInt(document.getElementById('examScore').value)||0;var total=ca+exam;var grade=total>=80?'A':(total>=60?'B':(total>=50?'C':(total>=45?'D':(total>=40?'E':'F'))));document.getElementById('totalDisplay').innerHTML=`📊 Total: ${total}/100 | Grade: ${grade}`;}
+    function saveCurrent(){showAlert('Saved successfully!','success');}
+    function saveAndNext(){saveCurrent();if(currentStudentIndex+1<currentStudentsList.length){currentStudentIndex++;selectStudent(currentStudentIndex);}else{showAlert('All students completed!','success');setTimeout(function(){goToScreen2();},1500);}}
+    function logout(){sessionStorage.clear();window.location.href='index.html';}
+</script>
+</body>
+</html>
