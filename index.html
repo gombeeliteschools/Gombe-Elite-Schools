@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login - Gombe Elite Schools</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Arial;background:#0000ff;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+        .login-container{max-width:400px;width:100%;background:#fff;border-radius:12px;padding:40px 30px;box-shadow:0 10px 40px rgba(0,0,0,0.2)}
+        .logo{text-align:center;margin-bottom:30px}
+        .logo h1{color:#0000ff;font-size:22px}
+        .logo p{color:#666;font-size:12px}
+        input{width:100%;padding:12px;margin:10px 0;border:1px solid #ddd;border-radius:8px;font-size:14px}
+        button{width:100%;padding:12px;background:#0000ff;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer}
+        button:hover{background:#0000cc}
+        .error{color:#e74c3c;margin-top:15px;text-align:center}
+        .spinner{display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px}
+        @keyframes spin{to{transform:rotate(360deg)}}
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <div class="logo">
+        <h1>🏫 GOMBE ELITE SCHOOLS</h1>
+        <p>Nursery | Primary | Secondary</p>
+    </div>
+    <input type="email" id="email" placeholder="Email Address">
+    <input type="password" id="password" placeholder="Password">
+    <button id="loginBtn" onclick="doLogin()">Login to Portal</button>
+    <div id="error" class="error"></div>
+</div>
+<script>
+    function doLogin(){
+        var email=document.getElementById('email').value.trim();
+        var password=document.getElementById('password').value;
+        var btn=document.getElementById('loginBtn');
+        if(!email||!password){document.getElementById('error').innerText='Enter email and password';return;}
+        btn.innerHTML='<span class="spinner"></span> Logging in...';
+        btn.disabled=true;
+        
+        // For demo - replace with actual API call
+        setTimeout(function(){
+            if(email==='admin@gombe.edu' && password==='admin123'){
+                sessionStorage.setItem('role','admin');
+                sessionStorage.setItem('name','Mohammad Ibrahim');
+                window.location.href='admin.html';
+            }else if(email==='teacher@gombe.edu' && password==='teacher123'){
+                sessionStorage.setItem('role','teacher');
+                sessionStorage.setItem('name','Mr. Ahmed');
+                window.location.href='teacher.html';
+            }else{
+                btn.innerHTML='Login to Portal';
+                btn.disabled=false;
+                document.getElementById('error').innerText='Invalid credentials';
+            }
+        },1000);
+    }
+</script>
+</body>
+</html>
