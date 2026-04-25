@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Parent - Gombe Elite Schools</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Arial;background:#f0f2f5;padding:20px}
+        .container{max-width:800px;margin:0 auto}
+        .header{background:#0000ff;color:#fff;padding:20px;border-radius:10px 10px 0 0;display:flex;justify-content:space-between}
+        .logout-btn{background:#e74c3c;padding:8px 16px;border-radius:5px;cursor:pointer;border:none;color:#fff}
+        .card{background:#fff;padding:20px;border-radius:0 0 10px 10px}
+        .child-card{border:1px solid #ddd;border-radius:10px;padding:15px;margin-bottom:15px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}
+        .child-card h3{color:#0000ff}
+        button{padding:8px 16px;border-radius:5px;border:none;cursor:pointer;margin:5px}
+        .btn-result{background:#0000ff;color:#fff}
+        .btn-fee{background:#27ae60;color:#fff}
+        .result-container{margin-top:20px;padding:20px;background:#fff;border-radius:10px;display:none}
+        .spinner{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;margin-right:6px}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @media print{.header,.logout-btn,button,.no-print{display:none}.result-container{display:block !important}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>🏠 Parent Portal - Gombe Elite Schools</h2>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+    <div class="card">
+        <h3>📋 My Children</h3>
+        <div id="childrenList"></div>
+    </div>
+    <div id="resultDisplay" class="result-container"></div>
+</div>
+<script>
+    var children = [
+        {admissionNo:'GES/001', name:'Ali Musa', class:'SSS One', arm:'A'},
+        {admissionNo:'GES/002', name:'Amina Bello', class:'JSS One', arm:'B'}
+    ];
+    
+    function loadChildren(){
+        var html='';
+        for(var i=0;i<children.length;i++){
+            html+=`<div class="child-card"><div><h3>${children[i].name}</h3><p>Admission: ${children[i].admissionNo} | Class: ${children[i].class} ${children[i].arm}</p></div>
+            <div><button class="btn-result" onclick="showResult('${children[i].admissionNo}','${children[i].name}','${children[i].class}')">📄 Result</button>
+            <button class="btn-fee" onclick="showFee('${children[i].admissionNo}','${children[i].name}','${children[i].class}')">💰 Fee</button></div></div>`;
+        }
+        document.getElementById('childrenList').innerHTML=html;
+    }
+    
+    function showResult(adm,name,cls){
+        var term=prompt('Enter Term:','First Term');
+        if(!term)return;
+        var html=`<div style="font-family:Arial;padding:20px"><div style="text-align:center;border-bottom:2px solid #0000ff"><h1 style="color:#0000ff">Gombe Elite Schools</h1><h3>TERMLY REPORT SHEET</h3><p>${term} - 2025/2026</p></div>
+        <div style="margin:20px 0"><p><strong>Name:</strong> ${name}</p><p><strong>Admission:</strong> ${adm}</p><p><strong>Class:</strong> ${cls}</p></div>
+        <table style="width:100%;border-collapse:collapse"><thead><tr style="background:#0000ff;color:#fff"><th>Subject</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th></tr></thead>
+        <tbody><tr><td>Mathematics</td><td>32</td><td>55</td><td>87</td><td>A</td></tr>
+        <tr><td>English</td><td>28</td><td>50</td><td>78</td><td>B</td></tr>
+        <tr><td>Basic Science</td><td>25</td><td>45</td><td>70</td><td>B</td></tr></tbody></table>
+        <div style="margin-top:20px"><p><strong>Teacher Comment:</strong> Excellent performance</p></div>
+        <div style="margin-top:30px;display:flex;justify-content:space-between"><div>_________________<br>Class Teacher</div><div>_________________<br>Headmaster</div><div>Date: ${new Date().toLocaleDateString()}</div></div></div>`;
+        document.getElementById('resultDisplay').innerHTML=html;
+        document.getElementById('resultDisplay').style.display='block';
+        window.print();
+    }
+    
+    function showFee(adm,name,cls){
+        var term=prompt('Enter Term:','First Term');
+        if(!term)return;
+        var html=`<div style="font-family:Arial;max-width:600px;margin:0 auto;padding:20px"><div style="text-align:center;border-bottom:2px solid #0000ff"><h1 style="color:#0000ff">Gombe Elite Schools</h1><h3>FEE RECEIPT</h3></div>
+        <div style="margin:20px 0"><p><strong>Student:</strong> ${name}</p><p><strong>Admission:</strong> ${adm}</p><p><strong>Class:</strong> ${cls}</p>
+        <p><strong>Term/Session:</strong> ${term} - 2025/2026</p><hr>
+        <p><strong>Amount Expected:</strong> ₦50,000</p><p><strong>Amount Paid:</strong> ₦50,000</p><p><strong>Balance:</strong> ₦0</p><hr>
+        <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p></div>
+        <div style="text-align:center;margin-top:40px">_________________<br>Authorized Signature</div></div>`;
+        document.getElementById('resultDisplay').innerHTML=html;
+        document.getElementById('resultDisplay').style.display='block';
+        window.print();
+    }
+    
+    function logout(){sessionStorage.clear();window.location.href='index.html';}
+    loadChildren();
+</script>
+</body>
+</html>
