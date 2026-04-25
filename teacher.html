@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Teacher - Gombe Elite Schools</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Arial;background:#f0f2f5}
+        
+        .dashboard-container{display:flex;min-height:100vh}
+        .sidebar{width:260px;background:#0000ff;color:#fff;position:fixed;height:100vh}
+        .logo{padding:25px 20px;text-align:center;border-bottom:1px solid #3333ff}
+        .nav-item{padding:12px 20px;display:flex;align-items:center;gap:12px;cursor:pointer}
+        .nav-item:hover,.nav-item.active{background:#3333ff}
+        .nav-icon{font-size:20px;width:30px}
+        
+        .main-content{margin-left:260px;flex:1;padding:20px}
+        .top-bar{background:#fff;padding:15px 20px;border-radius:10px;margin-bottom:20px;display:flex;justify-content:space-between}
+        .logout-btn{background:#e74c3c;padding:8px 16px;border-radius:5px;cursor:pointer;border:none;color:#fff}
+        .card{background:#fff;padding:25px;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
+        select,input,button{padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px}
+        button{background:#0000ff;color:#fff;border:none;cursor:pointer}
+        .selector-group{display:flex;gap:15px;flex-wrap:wrap;margin-bottom:20px}
+        .selector-group select{flex:1}
+        .student-list{max-height:400px;overflow-y:auto;margin-top:15px}
+        .student-item{padding:12px;border-bottom:1px solid #eee;cursor:pointer;display:flex;justify-content:space-between}
+        .student-item:hover{background:#f0f0ff}
+        .score-form{background:#f9f9ff;padding:20px;border-radius:10px;margin-top:20px}
+        .form-row{display:flex;gap:15px;flex-wrap:wrap}
+        .form-field{flex:1}
+        .skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:15px 0}
+        .total-grade{background:#0000ff;color:#fff;padding:15px;border-radius:8px;text-align:center;margin:15px 0}
+        .action-buttons{display:flex;gap:10px}
+        .action-buttons button{flex:1}
+        .btn-next{background:#27ae60}
+        .back-link{color:#0000ff;cursor:pointer;margin-bottom:15px;display:inline-block}
+        .alert{padding:10px;border-radius:5px;margin:10px 0;display:none}
+        .alert-success{background:#d4edda;color:#155724}
+        .page-content{display:none}
+        .page-content.active{display:block}
+        @media(max-width:768px){.sidebar{width:70px}.sidebar .nav-text,.logo h2{display:none}.main-content{margin-left:70px}}
+    </style>
+</head>
+<body>
+<div class="dashboard-container">
+    <div class="sidebar">
+        <div class="logo"><h2>🏫 GES</h2></div>
+        <div class="nav-item active" onclick="showPage('scores')"><span class="nav-icon">📝</span><span class="nav-text">Enter Scores</span></div>
+        <div class="nav-item" onclick="showPage('students')"><span class="nav-icon">👨‍🎓</span><span class="nav-text">My Students</span></div>
+        <div class="nav-item" onclick="showPage('results')"><span class="nav-icon">📄</span><span class="nav-text">Results</span></div>
+        <div class="nav-item" onclick="showPage('profile')"><span class="nav-icon">👤</span><span class="nav-text">Profile</span></div>
+    </div>
+    
+    <div class="main-content">
+        <div class="top-bar">
+            <h3>Welcome, <span id="teacherName"></span></h3>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+        
+        <div id="scoresPage" class="page-content active">
+            <div class="card">
+                <div id="alert" class="alert"></div>
+                <div id="screen1">
+                    <h3>Select Class, Subject & Term</h3>
+                    <div class="selector-group">
+                        <select id="classSelect"><option>SSS One A</option><option>SSS One B</option><option>JSS One A</option></select>
+                        <select id="subjectSelect"><option>Mathematics</option><option>English</option><option>Basic Science</option></select>
+                        <select id="termSelect"><option>First Term</option><option>Second Term</option><option>Third Term</option></select>
+                    </div>
+                    <button onclick="goToScreen2()">Continue →</button>
+                </div>
+                <div id="screen2" style="display:none">
+                    <span class="back-link" onclick="goToScreen1()">← Back</span>
+                    <h3>Select Student</h3>
+                    <input type="text" id="searchInput" placeholder="🔍 Search..." onkeyup="loadStudents()">
+                    <div id="studentList" class="student-list"></div>
+                </div>
+                <div id="screen3" style="display:none">
+                    <span class="back-link" onclick="goToScreen2()">← Back</span>
+                    <div id="scoreForm"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="studentsPage" class="page-content">
+            <div class="card"><h3>My Students</h3><div id="myStudentsList"></div></div>
+        </div>
+        
+        <div id="resultsPage" class="page-content">
+            <div class="card"><h3>Class Results</h3><p>Select a class to download results</p><button>Download Class Results (PDF)</button></div>
+        </div>
+        
+        <div id="profilePage" class="page-content">
+            <div class="card"><h3>My Profile</h3><p><strong>Name:</strong> <span id="profileName"></span></p><p><strong>Email:</strong> teacher@gombe.edu</p><p><strong>Class Assigned:</strong> SSS One A</p></div>
+        </div>
+    </div>
+</div>
+
+<script>
+var students = [
+    {admissionNo:'GES/001', name:'Ali Musa'},
+    {admissionNo:'GES/002', name:'Amina Bello'},
+    {admissionNo:'GES/003', name:'Bashir Umar'},
+    {admissionNo:'GES/004', name:'Fatima Idris'},
+    {admissionNo:'GES/005', name:'Zainab Abba'}
+];
+var currentStudentsList=[], currentStudentIndex=-1;
+
+function showPage(page){
+    document.querySelectorAll('.page-content').forEach(el=>el.classList.remove('active'));
+    document.getElementById(page+'Page').classList.add('active');
+}
+
+function showAlert(msg,type){
+    var a=document.getElementById('alert');
+    a.innerHTML=msg;
+    a.style.display='block';
+    a.className='alert alert-'+type;
+    setTimeout(function(){a.style.display='none';},2500);
+}
+
+document.getElementById('teacherName').innerText=sessionStorage.getItem('name')||'Teacher';
+document.getElementById('profileName').innerText=sessionStorage.getItem('name')||'Teacher';
+
+function goToScreen1(){
+    document.getElementById('screen1').style.display='block';
+    document.getElementById('screen2').style.display='none';
+    document.getElementById('screen3').style.display='none';
+}
+
+function goToScreen2(){
+    document.getElementById('screen1').style.display='none';
+    document.getElementById('screen2').style.display='block';
+    loadStudents();
+}
+
+function loadStudents(){
+    var search=document.getElementById('searchInput').value.toLowerCase();
+    var filtered=students.filter(s=>s.name.toLowerCase().includes(search));
+    currentStudentsList=filtered;
+    var html='';
+    for(var i=0;i<filtered.length;i++){
+        html+=`<div class="student-item" onclick="selectStudent(${i})"><div><strong>${filtered[i].name}</strong><br><small>${filtered[i].admissionNo}</small></div><div>✏️ Enter scores →</div></div>`;
+    }
+    document.getElementById('studentList').innerHTML=html||'<div style="padding:20px;text-align:center;">No students found</div>';
+}
+
+function selectStudent(index){
+    currentStudentIndex=index;
+    var s=currentStudentsList[index];
+    document.getElementById('screen2').style.display='none';
+    document.getElementById('screen3').style.display='block';
+    
+    var html=`<h3>${s.name} (${s.admissionNo})</h3>
+        <div class="form-row"><div class="form-field"><label>CA Score (40)</label><input type="number" id="caScore" min="0" max="40" oninput="calcTotal()"></div>
+        <div class="form-field"><label>Exam Score (60)</label><input type="number" id="examScore" min="0" max="60" oninput="calcTotal()"></div></div>
+        <div id="totalDisplay" class="total-grade">Total: -- | Grade: --</div>
+        <h4>Behaviour & Skills (1-5)</h4>
+        <div class="skills-grid">
+            <div><label>Attendance</label><select id="s1">${makeOptions()}</select></div>
+            <div><label>Punctuality</label><select id="s2">${makeOptions()}</select></div>
+            <div><label>Attentiveness</label><select id="s3">${makeOptions()}</select></div>
+            <div><label>Neatness</label><select id="s4">${makeOptions()}</select></div>
+            <div><label>Fluency</label><select id="s5">${makeOptions()}</select></div>
+            <div><label>Sports</label><select id="s6">${makeOptions()}</select></div>
+            <div><label>Relationships</label><select id="s7">${makeOptions()}</select></div>
+        </div>
+        <div class="form-field"><label>Teacher Comment</label><textarea id="comment" rows="2" style="width:100%;padding:8px;"></textarea></div>
+        <div class="action-buttons"><button onclick="saveCurrent()">💾 Save</button><button class="btn-next" onclick="saveAndNext()">Save & Next →</button></div>`;
+    document.getElementById('scoreForm').innerHTML=html;
+    calcTotal();
+}
+
+function makeOptions(){
+    var opts='';
+    for(var i=1;i<=5;i++){
+        var l=i===5?'Excellent':(i===4?'Very Good':(i===3?'Good':(i===2?'Fair':'Poor')));
+        opts+=`<option value="${i}">${i} - ${l}</option>`;
+    }
+    return opts;
+}
+
+function calcTotal(){
+    var ca=parseInt(document.getElementById('caScore').value)||0;
+    var exam=parseInt(document.getElementById('examScore').value)||0;
+    var total=ca+exam;
+    var grade=total>=80?'A':(total>=60?'B':(total>=50?'C':(total>=45?'D':(total>=40?'E':'F'))));
+    document.getElementById('totalDisplay').innerHTML=`📊 Total: ${total}/100 | Grade: ${grade}`;
+}
+
+function saveCurrent(){
+    showAlert('✅ Scores saved successfully!','success');
+}
+
+function saveAndNext(){
+    saveCurrent();
+    if(currentStudentIndex+1<currentStudentsList.length){
+        currentStudentIndex++;
+        selectStudent(currentStudentIndex);
+    }else{
+        showAlert('🎉 All students completed!','success');
+        setTimeout(function(){goToScreen2();},1500);
+    }
+}
+
+function logout(){sessionStorage.clear();window.location.href='index.html';}
+
+var myStudentsHtml='';
+for(var i=0;i<students.length;i++) myStudentsHtml+=`<div class="student-item"><div><strong>${students[i].name}</strong><br><small>${students[i].admissionNo}</small></div></div>`;
+document.getElementById('myStudentsList').innerHTML=myStudentsHtml;
+</script>
+</body>
+</html>
