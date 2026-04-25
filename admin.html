@@ -6,11 +6,27 @@
     <title>Admin - Gombe Elite Schools</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:Arial;background:#f0f2f5;padding:20px}
-        .container{max-width:1200px;margin:0 auto}
-        .header{background:#0000ff;color:#fff;padding:20px;border-radius:10px 10px 0 0;display:flex;justify-content:space-between;align-items:center}
+        body{font-family:Arial;background:#f0f2f5}
+        
+        /* Side Menu Styles */
+        .dashboard-container{display:flex;min-height:100vh}
+        .sidebar{width:260px;background:#0000ff;color:#fff;position:fixed;height:100vh;overflow-y:auto}
+        .logo{padding:25px 20px;text-align:center;border-bottom:1px solid #3333ff}
+        .logo h2{font-size:18px}
+        .nav-menu{margin-top:20px}
+        .nav-item{padding:12px 20px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background 0.3s}
+        .nav-item:hover{background:#3333ff}
+        .nav-item.active{background:#3333ff;border-left:4px solid #fff}
+        .nav-icon{font-size:20px;width:30px}
+        .nav-text{font-size:14px}
+        
+        /* Main Content */
+        .main-content{margin-left:260px;flex:1;padding:20px}
+        .top-bar{background:#fff;padding:15px 20px;border-radius:10px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
+        .user-info{display:flex;align-items:center;gap:15px}
         .logout-btn{background:#e74c3c;padding:8px 16px;border-radius:5px;cursor:pointer;border:none;color:#fff}
-        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin:20px 0}
+        
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:20px}
         .stat-card{background:#fff;padding:20px;border-radius:10px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
         .stat-number{font-size:36px;font-weight:bold;color:#0000ff}
         .card{background:#fff;padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
@@ -19,69 +35,178 @@
         th{background:#0000ff;color:#fff}
         .toggle-btn{background:#27ae60;color:#fff;border:none;padding:5px 10px;border-radius:5px;cursor:pointer}
         .toggle-btn.inactive{background:#e74c3c}
+        .promote-area{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
         select,button{padding:8px 12px;border-radius:5px}
-        .promote-area{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
         .success{color:green;padding:10px;background:#d4edda;border-radius:5px;display:none;margin-top:10px}
-        .spinner{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;margin-right:6px}
-        @keyframes spin{to{transform:rotate(360deg)}}
+        .page-content{display:none}
+        .page-content.active{display:block}
+        @media(max-width:768px){.sidebar{width:70px}.sidebar .nav-text,.logo h2{display:none}.main-content{margin-left:70px}.nav-item{justify-content:center}}
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h2>👑 Admin Dashboard - Gombe Elite Schools</h2>
-        <button class="logout-btn" onclick="logout()">Logout</button>
-    </div>
-    <div class="stats-grid" id="stats"></div>
-    <div class="card">
-        <h3>📚 Class Promotion</h3>
-        <div class="promote-area">
-            <select id="promoteClassSelect">
-                <option value="">-- Select Class --</option>
-                <option>Nursery One</option>
-                <option>Nursery Two</option>
-                <option>Primary One</option>
-                <option>Primary Two</option>
-                <option>JSS One</option>
-                <option>JSS Two</option>
-                <option>SSS One</option>
-                <option>SSS Two</option>
-            </select>
-            <button id="promoteBtn" onclick="promoteClass()">Promote to Next Class</button>
+<div class="dashboard-container">
+    <!-- Side Menu Bar -->
+    <div class="sidebar">
+        <div class="logo">
+            <h2>🏫 GES</h2>
         </div>
-        <div id="promoteMsg" class="success"></div>
+        <div class="nav-menu">
+            <div class="nav-item active" onclick="showPage('dashboard')">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Dashboard</span>
+            </div>
+            <div class="nav-item" onclick="showPage('classes')">
+                <span class="nav-icon">📚</span>
+                <span class="nav-text">Class Promotion</span>
+            </div>
+            <div class="nav-item" onclick="showPage('users')">
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">User Management</span>
+            </div>
+            <div class="nav-item" onclick="showPage('results')">
+                <span class="nav-icon">📄</span>
+                <span class="nav-text">View Results</span>
+            </div>
+            <div class="nav-item" onclick="showPage('fees')">
+                <span class="nav-icon">💰</span>
+                <span class="nav-text">Fee Reports</span>
+            </div>
+            <div class="nav-item" onclick="showPage('settings')">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Settings</span>
+            </div>
+        </div>
     </div>
-    <div class="card">
-        <h3>👥 User Management</h3>
-        <div style="overflow-x:auto">
-            <table>
-                <thead><tr><th>Email</th><th>Role</th><th>Name</th><th>Class</th><th>Status</th><th>Action</th></tr></thead>
-                <tbody id="userTableBody"></tbody>
-            </table>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <h3>Welcome, <span id="adminName"></span></h3>
+            <div class="user-info">
+                <span>👑 Admin</span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+        
+        <!-- Dashboard Page -->
+        <div id="dashboardPage" class="page-content active">
+            <div class="stats-grid" id="stats"></div>
+            <div class="card">
+                <h3>📈 Quick Overview</h3>
+                <p>Welcome to Gombe Elite Schools Admin Dashboard. Use the side menu to navigate.</p>
+            </div>
+        </div>
+        
+        <!-- Class Promotion Page -->
+        <div id="classesPage" class="page-content">
+            <div class="card">
+                <h3>📚 Class Promotion</h3>
+                <div class="promote-area">
+                    <select id="promoteClassSelect">
+                        <option value="">-- Select Class --</option>
+                        <option>Nursery One</option><option>Nursery Two</option>
+                        <option>Primary One</option><option>Primary Two</option>
+                        <option>JSS One</option><option>JSS Two</option>
+                        <option>SSS One</option><option>SSS Two</option>
+                    </select>
+                    <button id="promoteBtn" onclick="promoteClass()">Promote to Next Class</button>
+                </div>
+                <div id="promoteMsg" class="success"></div>
+            </div>
+        </div>
+        
+        <!-- User Management Page -->
+        <div id="usersPage" class="page-content">
+            <div class="card">
+                <h3>👥 User Management</h3>
+                <div style="overflow-x:auto">
+                    <table id="userTable">
+                        <thead><tr><th>Email</th><th>Role</th><th>Name</th><th>Status</th><th>Action</th></tr></thead>
+                        <tbody id="userTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Page -->
+        <div id="resultsPage" class="page-content">
+            <div class="card">
+                <h3>📄 Student Results</h3>
+                <p>Select a student to view/download results.</p>
+                <select id="resultStudentSelect" style="margin-top:10px;width:100%">
+                    <option value="">-- Select Student --</option>
+                    <option>Ali Musa (GES/001)</option>
+                    <option>Amina Bello (GES/002)</option>
+                    <option>Bashir Umar (GES/003)</option>
+                </select>
+                <button onclick="viewResult()" style="margin-top:10px">View Result</button>
+            </div>
+        </div>
+        
+        <!-- Fees Page -->
+        <div id="feesPage" class="page-content">
+            <div class="card">
+                <h3>💰 Fee Reports</h3>
+                <p>View fee collection summary.</p>
+                <div id="feeSummary" style="margin-top:15px"></div>
+            </div>
+        </div>
+        
+        <!-- Settings Page -->
+        <div id="settingsPage" class="page-content">
+            <div class="card">
+                <h3>⚙️ School Settings</h3>
+                <p><strong>School Name:</strong> Gombe Elite Schools</p>
+                <p><strong>Address:</strong> Jauro Jatau, Akko L. G. A., Gombe State</p>
+                <p><strong>Phone:</strong> 08025544642</p>
+                <p><strong>Email:</strong> gombeeliteschools@gmail.com</p>
+                <p><strong>Current Session:</strong> 2025/2026</p>
+                <p><strong>Current Term:</strong> Second Term</p>
+            </div>
         </div>
     </div>
 </div>
+
 <script>
     var users = [
-        {email:'admin@gombe.edu', role:'admin', name:'Mohammad Ibrahim', class:'-', active:true},
-        {email:'teacher1@gombe.edu', role:'teacher', name:'Mr. Ahmed', class:'SSS One', active:true},
-        {email:'teacher2@gombe.edu', role:'teacher', name:'Mrs. Fatima', class:'JSS One', active:true},
-        {email:'parent1@gmail.com', role:'parent', name:'Ali Musa', class:'-', active:true}
+        {email:'admin@gombe.edu', role:'admin', name:'Mohammad Ibrahim', active:true},
+        {email:'teacher1@gombe.edu', role:'teacher', name:'Mr. Ahmed', active:true},
+        {email:'teacher2@gombe.edu', role:'teacher', name:'Mrs. Fatima', active:true},
+        {email:'parent1@gmail.com', role:'parent', name:'Ali Musa', active:true}
     ];
     
+    function showPage(page){
+        document.querySelectorAll('.page-content').forEach(el=>el.classList.remove('active'));
+        document.getElementById(page+'Page').classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+    }
+    
+    function showMessage(msg,type){
+        var el=document.getElementById('promoteMsg');
+        if(el){
+            el.innerHTML=msg;
+            el.style.display='block';
+            setTimeout(function(){el.style.display='none';},3000);
+        }
+    }
+    
     function loadDashboard(){
+        document.getElementById('adminName').innerText=sessionStorage.getItem('name')||'Admin';
         document.getElementById('stats').innerHTML=`
             <div class="stat-card"><div class="stat-number">245</div><div>Total Students</div></div>
             <div class="stat-card"><div class="stat-number">12</div><div>Total Teachers</div></div>
             <div class="stat-card"><div class="stat-number">₦1,250,000</div><div>Fees Collected</div></div>
+            <div class="stat-card"><div class="stat-number">8</div><div>Fee Defaulters</div></div>
         `;
         var html='';
         for(var i=0;i<users.length;i++){
-            html+=`<tr><td>${users[i].email}</td><td>${users[i].role}</td><td>${users[i].name}</td><td>${users[i].class}</td>
+            html+=`<tr><td>${users[i].email}</td><td>${users[i].role}</td><td>${users[i].name}</td>
             <td>${users[i].active ? '✅ Active' : '❌ Inactive'}</td>
             <td><button class="toggle-btn ${users[i].active ? '' : 'inactive'}" onclick="toggleUser(${i})">${users[i].active ? 'Deactivate' : 'Activate'}</button></td></tr>`;
         }
         document.getElementById('userTableBody').innerHTML=html;
+        document.getElementById('feeSummary').innerHTML='<p>Total Fees Expected: ₦3,250,000</p><p>Total Fees Collected: ₦1,250,000</p><p>Outstanding Balance: ₦2,000,000</p>';
     }
     
     function toggleUser(index){
@@ -92,7 +217,7 @@
     
     function promoteClass(){
         var btn=document.getElementById('promoteBtn');
-        btn.innerHTML='<span class="spinner"></span> Promoting...';
+        btn.innerHTML='⏳ Promoting...';
         btn.disabled=true;
         setTimeout(function(){
             btn.innerHTML='Promote to Next Class';
@@ -101,11 +226,8 @@
         },1000);
     }
     
-    function showMessage(msg,type){
-        var el=document.getElementById('promoteMsg');
-        el.innerHTML=msg;
-        el.style.display='block';
-        setTimeout(function(){el.style.display='none';},3000);
+    function viewResult(){
+        showMessage('Result PDF would open here','success');
     }
     
     function logout(){sessionStorage.clear();window.location.href='index.html';}
